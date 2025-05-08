@@ -111,7 +111,7 @@ for nsym = 1:Nsym
     % Equalization and demodulation
     Y_eq = Y ./ H_est;
     data_rx = Y_eq(setdiff(1:Nfft, pilot_loc));
-    msg_detected = qamDemod(data_rx'/A).';
+    msg_detected = qamdemod(data_rx / A, M, 'UnitAveragePower', false);
     err_count = err_count + sum(msg_detected ~= msgint);
 end
 

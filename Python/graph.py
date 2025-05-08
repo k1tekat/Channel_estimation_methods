@@ -7,7 +7,7 @@ from scipy.signal import fftconvolve
 Nfft = 32  # Размер FFT
 Ng = Nfft // 8  # Длина циклического префикса
 Nofdm = Nfft + Ng  # Общая длина OFDM символа
-Nsym = 1  # Количество OFDM символов 100 было
+Nsym = 1  # Количество OFDM символов
 Nps = 4  # Интервал между пилотами
 Np = Nfft // Nps  # Количество пилотов на OFDM символ
 Nbps = 4  # Количество бит на символ
@@ -17,14 +17,6 @@ A = np.sqrt(3 / 2 / (M - 1) * Es)  # Нормализующий коэффици
 SNR = 30  # Отношение сигнал/шум в дБ
 MSE = np.zeros(6)  # Массив для хранения MSE
 nose = 0  # Счетчик ошибок
-
-print("Длина циклического префикса Ng =",Ng,"\n")
-print("Общая длина OFDM символа Nofdm =",Nofdm,"\n")
-print("Количество пилотов на OFDM символ Np =",Np,"\n")
-print("Размер QAM модуляции M =",M,"\n")
-print("Нормализующий коэффициент для QAM A =",A,"\n")
-
-
 
 # Функция для добавления шума
 def awgn(signal, SNR):
@@ -61,63 +53,28 @@ def MMSE_CE(Y, Xp, pilot_loc, Nfft, Nps, h, SNR):
     H_MMSE = H_LS / (1 + sigma_n_sq / np.abs(H_LS) ** 2)
     return H_MMSE
 
-def Mapper(b,Bits_per_symbol):
-    mapping_table = {
-    (0,0,0,0) : -3-3j,
-    (0,0,0,1) : -3-1j,
-    (0,0,1,0) : -3+3j,
-    (0,0,1,1) : -3+1j,
-    (0,1,0,0) : -1-3j,
-    (0,1,0,1) : -1-1j,
-    (0,1,1,0) : -1+3j,
-    (0,1,1,1) : -1+1j,
-    (1,0,0,0) :  3-3j,
-    (1,0,0,1) :  3-1j,
-    (1,0,1,0) :  3+3j,
-    (1,0,1,1) :  3+1j,
-    (1,1,0,0) :  1-3j,
-    (1,1,0,1) :  1-1j,
-    (1,1,1,0) :  1+3j,
-    (1,1,1,1) :  1+1j
-}
-    itera = int(len(b)/4)
-    n = 0
-    plt.figure("QAM-16",figsize=(10,10))
-    for i in range(itera):
-        B = (b[n], b[n+1], b[n+2], b[n+3])
-        #print(B)
-        Q = mapping_table[B]
-        n = n + 4
-        # Отрисовка точки
-        plt.plot(Q.real, Q.imag, 'o', markersize=12, markerfacecolor='blue', markeredgecolor='black', label=None)
-        # Добавление текста с битами
-        plt.text(Q.real, Q.imag + 0.2, "".join(str(x) for x in B), ha='center', fontsize=10, color='darkred')
-    plt.show()
-    return Q
-
-
 # Генерация случайного канала
 h = np.random.randn(2) + 1j * np.random.randn(2)
 H_true = np.fft.fft(h, Nfft)  # Истинный канал в частотной области
 ch_length = len(h)
 
-
-
 # Основной цикл
 for nsym in range(Nsym):
     # Генерация пилотных сигналов
-    Xp = 2 * (np.random.randn(Np) > 0) - 1
+    Xp = 2 * (np.random.randn(Np) > 0)
     msgint = np.random.randint(0, M, Nfft - Np)  # Генерация данных
-    bits = np.random.binomial(n=1, p=0.5, size = ((Nfft - Np) * 4) )
-    Data = A * (2 * (msgint // np.sqrt(M)) - 1 + 1j * (2 * (msgint % np.sqrt(M)) - 1))
-    My_Data = Mapper(bits,Nbps)# Передаем битовую последовательность (96 бит) и размер бит на символ (Nbps)
-    print(My_Data)
+    Data = (2 * (msgint // np.sqrt(M))+ 1j * (2 * (msgint % np.sqrt(M))))
 
-    """
-    1. сгенерировать последовательность бит
-    2. сделать маппер  и разбить биты, сконвертировать их в Комплексные сисла
-    3. добавить опорные сигналы (1+0J) например
-    """
+    # Визуализация QAM-сигналов
+    plt.figure(figsize=(12, 8))
+    plt.scatter(np.real(Data), np.imag(Data), c='blue', label='QAM Symbols')
+    plt.title('QAM Constellation (Generated Data)')
+    plt.xlabel('Real Part')
+    plt.ylabel('Imaginary Part')
+    plt.legend()
+    plt.grid()
+
+    plt.show()
 
     # Формирование OFDM символа
     ip = 0
@@ -130,6 +87,28 @@ for nsym in range(Nsym):
             ip += 1
         else:
             X[k] = Data[k - ip]
+
+    # Визуализация OFDM символа
+    plt.figure(figsize=(12, 8))
+    plt.subplot(2, 1, 1)
+    plt.stem(range(Nfft), np.abs(X), linefmt='b', markerfmt='bo', basefmt=" ", label='Data')
+    plt.scatter(pilot_loc, np.abs(X[pilot_loc]), color='red', label='Pilots')  # Пилоты выделены красным
+    plt.title('OFDM Symbol: Pilot and Data Locations (Amplitude)')
+    plt.xlabel('Subcarrier Index')
+    plt.ylabel('Amplitude')
+    plt.legend()
+    plt.grid()
+
+    plt.subplot(2, 1, 2)
+    plt.plot(range(Nfft), np.angle(X), 'g-', label='Phase')
+    plt.scatter(pilot_loc, np.angle(X[pilot_loc]), color='red', label='Pilots')  # Пилоты выделены красным
+    plt.title('Phase of OFDM Subcarriers')
+    plt.xlabel('Subcarrier Index')
+    plt.ylabel('Phase (radians)')
+    plt.legend()
+    plt.grid()
+    plt.tight_layout()
+    plt.show()
 
     # IFFT и добавление циклического префикса
     x = np.fft.ifft(X)
@@ -158,21 +137,32 @@ for nsym in range(Nsym):
         MSE[m] += np.sum(np.abs(H_true - H_est) ** 2)
         MSE[m + 3] += np.sum(np.abs(H_true - H_DFT) ** 2)
 
-        # Визуализация (только для первого символа)
+        # Визуализация оценки канала
         if nsym == 0:
             H_true_dB = 10 * np.log10(np.abs(H_true) ** 2)
             H_est_dB = 10 * np.log10(np.abs(H_est) ** 2)
             H_DFT_dB = 10 * np.log10(np.abs(H_DFT) ** 2)
 
-            plt.subplot(3, 2, 2 * m + 1)
+            plt.figure(figsize=(12, 8))
+            plt.subplot(2, 1, 1)
             plt.plot(H_true_dB, 'b', label='True Channel')
             plt.plot(H_est_dB, 'r:', label=f'{method}')
+            plt.title(f'Channel Estimation: {method}')
+            plt.xlabel('Subcarrier Index')
+            plt.ylabel('Power (dB)')
             plt.legend()
+            plt.grid()
 
-            plt.subplot(3, 2, 2 * m + 2)
+            plt.subplot(2, 1, 2)
             plt.plot(H_true_dB, 'b', label='True Channel')
             plt.plot(H_DFT_dB, 'r:', label=f'{method} with DFT')
+            plt.title(f'Channel Estimation with DFT: {method}')
+            plt.xlabel('Subcarrier Index')
+            plt.ylabel('Power (dB)')
             plt.legend()
+            plt.grid()
+            plt.tight_layout()
+            plt.show()
 
     # Демодуляция
     Y_eq = Y / H_est
@@ -193,5 +183,3 @@ for nsym in range(Nsym):
 MSEs = MSE / (Nfft * Nsym)
 print("MSE:", MSEs)
 print("Bit Error Rate:", nose / (Nsym * (Nfft - Np)))
-plt.tight_layout()
-plt.show()
