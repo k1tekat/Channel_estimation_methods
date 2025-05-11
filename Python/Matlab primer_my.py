@@ -61,7 +61,7 @@ def MMSE_CE(Y, Xp, pilot_loc, Nfft, Nps, h, SNR):
     H_MMSE = H_LS / (1 + sigma_n_sq / np.abs(H_LS) ** 2)
     return H_MMSE
 
-def Mapper(b,Bits_per_symbol):
+def Mapper(b,Nbps):
     mapping_table = {
     (0,0,0,0) : -3-3j,
     (0,0,0,1) : -3-1j,
@@ -80,20 +80,42 @@ def Mapper(b,Bits_per_symbol):
     (1,1,1,0) :  1+3j,
     (1,1,1,1) :  1+1j
 }
-    itera = int(len(b)/4)
+     # Проверка: количество бит кратно Nbps
+    if len(b) % Nbps != 0:
+        raise ValueError("Длина входного списка бит должна быть кратна Nbps.")
+
+    num_symbols = len(b) // Nbps
     n = 0
+    N = np.zeros(num_symbols, dtype=complex)
     plt.figure("QAM-16",figsize=(10,10))
-    for i in range(itera):
-        B = (b[n], b[n+1], b[n+2], b[n+3])
-        #print(B)
+    for i in range(int(len(bits)/Nbps)):
+        start = i * Nbps
+        end = start + Nbps
+        B = tuple(b[start:end])  # Получаем группу битов как кортеж
         Q = mapping_table[B]
-        n = n + 4
+        N[i] = Q
+        print("N: ",N)
+        print("Q: ",Q)
+        print("Кол-во битов:",len(bits))
+        print("Кол-во комлексных чисел на выходе:",int(len(bits)/Nbps))
+
         # Отрисовка точки
-        plt.plot(Q.real, Q.imag, 'o', markersize=12, markerfacecolor='blue', markeredgecolor='black', label=None)
+        plt.plot(Q.real, Q.imag, 'o', markersize=10, markerfacecolor='blue', markeredgecolor='black')
         # Добавление текста с битами
-        plt.text(Q.real, Q.imag + 0.2, "".join(str(x) for x in B), ha='center', fontsize=10, color='darkred')
+        plt.text(Q.real, Q.imag + 0.3, ''.join(str(bit) for bit in B), ha='center', fontsize=9, color='darkred')
+    
+    plt.axhline(0, color='gray', linestyle='--', linewidth=0.5)
+    plt.axvline(0, color='gray', linestyle='--', linewidth=0.5)
+    plt.xlabel('In-phase (I)')
+    plt.ylabel('Quadrature (Q)')
+    plt.title('Constellation Diagram of 16-QAM')
+    plt.grid(True)
+    plt.axis('equal')
     plt.show()
-    return Q
+    
+        
+    plt.show()
+    return N
 
 
 # Генерация случайного канала
@@ -107,9 +129,14 @@ ch_length = len(h)
 for nsym in range(Nsym):
     # Генерация пилотных сигналов
     Xp = 2 * (np.random.randn(Np) > 0) - 1
-    msgint = np.random.randint(0, M, Nfft - Np)  # Генерация данных
-    bits = np.random.binomial(n=1, p=0.5, size = ((Nfft - Np) * 4) )
+    msgint = np.random.randint(0, M, Nfft - Np)  
+
+    # Генерация данных
+    bits = np.random.binomial(n=1, p=0.5, size = ((Nfft - Np) * 4) )# случайная генерация битовой последовательности
     Data = A * (2 * (msgint // np.sqrt(M)) - 1 + 1j * (2 * (msgint % np.sqrt(M)) - 1))
+    print(Data)
+
+    
     My_Data = Mapper(bits,Nbps)# Передаем битовую последовательность (96 бит) и размер бит на символ (Nbps)
     print(My_Data)
 
