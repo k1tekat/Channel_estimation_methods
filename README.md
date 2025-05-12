@@ -105,8 +105,27 @@ OFDM символ формируется из поднесущих с данны
 
     Вернуть X и массив pilot_loc
 ```
+Пример сгенерированного OFDM символа:
+![](https://sun9-78.userapi.com/impg/0eOVbkPmsBZZOk54ZZvjLTQCEM2UlrhjakHoBA/KIu-vVCifhA.jpg?size=358x272&quality=95&sign=b2c2ae4ac6e2988f50ff4e4f5dfefa69&type=album)
 
 ### IFFT & FFT
+#### IFFT
+```
+1. Обратное БПФ: переводим сигнал из частотной области во временную
+x = IFFT(X)
+```
+Пример преобразования сигнала:
+![](https://sun9-80.userapi.com/impg/XkwNn8A0mr6JYsLeNp5A3mJKy0VQ_GIRdYrDZA/0ZDNhUctWAQ.jpg?size=1887x246&quality=95&sign=6fd057e169d95c3d164cd6621364f6fe&type=album)
+![](https://sun9-43.userapi.com/impg/G7P9j89mDMGpfFSthsrf5yoIbDvANVa4WFvphw/gqZ03cTwJ1E.jpg?size=1884x216&quality=95&sign=c95c722812b1a9529be93660f1d1958b&type=album)
+#### FFT
+```
+// y — принятый сигнал во временной области (после удаления CP)
+// Y — результат FFT: сигнал в частотной области
+
+Y = FFT(y)
+```
+Принятый сигнал после FFT, с шумом и искажением от канала:
+![](https://sun9-56.userapi.com/impg/cLqxl5snkPg8Vy6L7OdtXI24_L62NerIlH13Pw/QMfa3zkpHvw.jpg?size=1879x229&quality=95&sign=eb88471b9f4a92f63d6b2e5bff597d36&type=album)
 ### Добавление и удаление CP
 ### Канал передачи
 Беспроводной канал передачи — это среда распространения радиосигнала между передатчиком и приёмником. Он обладает рядом физических эффектов, таких как: многолучевость, затухание, шум и помехи, которые могут существенно исказить сигнал.
