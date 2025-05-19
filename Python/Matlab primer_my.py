@@ -262,14 +262,22 @@ def demapper(received_symbols):
 
 # Основной цикл
 for nsym in range(Nsym):
-    # Генерация пилотных сигналов
-    Xp = 2 * (np.random.randn(Np) > 0) - 1
+    
+
+
+    # === Генерация QAM-16 пилотных символов ===
+
+    # Шаг 1: Генерация случайных битов для пилотов
+    bits_pilot = np.random.randint(0, 2, size=Np * Nbps)  # Np * 4 бита на Np пилотов
+
+    # Шаг 2: Использование Mapper QAM-16
+    Xp = Mapper(bits_pilot, Nbps)  # Теперь Xp — массив комплексных чисел QAM-16
 
     # Генерация данных
     bits = np.random.binomial(n=1, p=0.5, size = ((Nfft - Np) * 4) )# случайная генерация битовой последовательности
     print("Bits: ",bits)
     #Data = A * (2 * (msgint // np.sqrt(M)) - 1 + 1j * (2 * (msgint % np.sqrt(M)) - 1))
-    My_Data =Mapper(bits,Nbps)# Передаем битовую последовательность (96 бит) и размер бит на символ (Nbps)
+    My_Data = Mapper(bits,Nbps)# Передаем битовую последовательность (96 бит) и размер бит на символ (Nbps)
     #print(len(My_Data))
 
 
@@ -294,7 +302,7 @@ for nsym in range(Nsym):
             buf = Nps
             print(k," ")
         else:
-            X[k] = My_Data[1]
+            X[k] = My_Data[k-ip]
             buf-=1
     print("\n",ip," np",Np,"\n"," X: ",len(X))
 
@@ -335,6 +343,60 @@ for nsym in range(Nsym):
 
     y = yt[Ng:] #удаляем циклический префикс
     Y = np.fft.fft(y) 
+
+
+
+    # === Визуализация IFFT / FFT ===
+    plt.figure(figsize=(16, 10))
+
+    # --- 1. Сигнал в частотной области (X[k]) ---
+    plt.subplot(4, 1, 1)
+    plt.plot(np.abs(X), 'b-o', label='Амплитуда')
+    plt.title("1. Сигнал в частотной области $X[k]$")
+    plt.xlabel("Поднесущая k")
+    plt.ylabel("Амплитуда")
+    plt.grid(True)
+    plt.legend()
+
+    # --- 2. OFDM-символ во временной области (x[n]) ---
+    plt.subplot(4, 1, 2)
+    plt.plot(np.real(x), 'b', label='Re(x[n])')
+    plt.plot(np.imag(x), 'r--', label='Im(x[n])')
+    plt.title("2. OFDM-символ во временной области $x[n]$ (после IFFT)")
+    plt.xlabel("Отсчёт n")
+    plt.ylabel("Значение")
+    plt.grid(True)
+    plt.legend()
+
+    # --- 3. Принятый сигнал после удаления CP (y[n]) ---
+    plt.subplot(4, 1, 3)
+    plt.plot(np.real(y), 'b', label='Re(y[n])')
+    plt.plot(np.imag(y), 'r--', label='Im(y[n])')
+    plt.title("3. Принятый сигнал $y[n]$ (после удаления CP)")
+    plt.xlabel("Отсчёт n")
+    plt.ylabel("Значение")
+    plt.grid(True)
+    plt.legend()
+
+    # --- 4. После FFT — принятый сигнал в частотной области (Y[k]) ---
+    plt.subplot(4, 1, 4)
+    plt.plot(np.abs(Y), 'g-o', label='Амплитуда')
+    plt.title("4. Принятый сигнал в частотной области $Y[k]$ (после FFT)")
+    plt.xlabel("Поднесущая k")
+    plt.ylabel("Амплитуда")
+    plt.grid(True)
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+
+
+
+
 
     print("y",y,len(y))
     print("Y",Y,len(Y))
@@ -392,8 +454,8 @@ for nsym in range(Nsym):
     plt.show()
 
 
-    #H_est = LS_CE(Y, Xp, pilot_loc, Nfft, Nps, 'linear')
-    H_est = MMSE_CE(Y, Xp, pilot_loc, Nfft, Nps, h, SNR)
+    H_est = LS_CE(Y, Xp, pilot_loc, Nfft, Nps, 'linear')
+    #H_est = MMSE_CE(Y, Xp, pilot_loc, Nfft, Nps, h, SNR)
     print("H_est: ",H_est)
     # DFT-based оценка канала
     h_est = np.fft.ifft(H_est)
