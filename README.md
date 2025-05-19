@@ -115,8 +115,7 @@ OFDM символ формируется из поднесущих с данны
 x = IFFT(X)
 ```
 Пример преобразования сигнала:
-![](https://sun9-80.userapi.com/impg/XkwNn8A0mr6JYsLeNp5A3mJKy0VQ_GIRdYrDZA/0ZDNhUctWAQ.jpg?size=1887x246&quality=95&sign=6fd057e169d95c3d164cd6621364f6fe&type=album)
-![](https://sun9-43.userapi.com/impg/G7P9j89mDMGpfFSthsrf5yoIbDvANVa4WFvphw/gqZ03cTwJ1E.jpg?size=1884x216&quality=95&sign=c95c722812b1a9529be93660f1d1958b&type=album)
+![](https://sun9-32.userapi.com/impg/0hKzvT-ZKOfzWmu-l28A1OQQPpOYEqmVqYcxVg/iNet_4Z2oiI.jpg?size=1843x470&quality=95&sign=e1d4b57516da3beb06797b4fd19b91e4&type=album)
 #### FFT
 ```
 // y — принятый сигнал во временной области (после удаления CP)
@@ -125,7 +124,7 @@ x = IFFT(X)
 Y = FFT(y)
 ```
 Принятый сигнал после FFT, с шумом и искажением от канала:
-![](https://sun9-56.userapi.com/impg/cLqxl5snkPg8Vy6L7OdtXI24_L62NerIlH13Pw/QMfa3zkpHvw.jpg?size=1879x229&quality=95&sign=eb88471b9f4a92f63d6b2e5bff597d36&type=album)
+![](https://sun9-38.userapi.com/impg/X-mcW6u0dYQ19ap0JrOr-s6usk8ryCeTfgXG0w/1_aqAhSIKMw.jpg?size=1837x474&quality=95&sign=6b377a7a57d006bc5e7b46558acd40bf&type=album)
 ### Добавление и удаление CP
 ### Канал передачи
 Беспроводной канал передачи — это среда распространения радиосигнала между передатчиком и приёмником. Он обладает рядом физических эффектов, таких как: многолучевость, затухание, шум и помехи, которые могут существенно исказить сигнал.
@@ -145,7 +144,7 @@ Y = FFT(y)
     ch_length = Длина вектора h
 ```
 Пример сгенерированного канала:
-![alt text](https://sun9-38.userapi.com/impg/O8uG67DP_8FryPuYs6hx7UjtxwFZ4ye-_I1MGw/kjLEx_VvJC0.jpg?size=1871x923&quality=95&sign=677e7be6da9be5d76e093630dea5235c&type=album)
+![alt text](https://sun9-1.userapi.com/impg/zRKQVLqKJJ3R8Q73Du-oofp9lxpzLXsxHmtSqw/FL3KrJn7OxA.jpg?size=1200x675&quality=95&sign=c367cdf0e18b4742da1d9ae85098ddb1&type=album)
 
 ```
 Прохождение сигнала через канал:
@@ -170,7 +169,7 @@ Y = FFT(y)
 ```
 
 Пример входных и выходных данных:
-![alt text](https://sun9-8.userapi.com/impg/wWCpPF-sZBxdH_IfrrIim5A3sZ2sLwdYhGNUGg/CCtEixkQ1Lc.jpg?size=1870x886&quality=95&sign=61a2480f11c58400fe3f73a49d496708&type=album)
+![alt text](https://sun9-20.userapi.com/impg/-Y7Nn5rL8ynjcK3yK_mtSVvRVnD5CouUxNSMeQ/YZEvfnCjrzc.jpg?size=1876x889&quality=95&sign=609de536b0c12d095a3428289194b251&type=album)
 
 
 
@@ -325,6 +324,33 @@ $$\hat{H}_{LS}[k] = \frac{Y[k]}{X[k]}, \quad k = 0, 1, 2, \ldots, N-1 (6.7)$$
     Вернуть H_LS
 ```
 ### Метод минимизации среднеквадратичной ошибки (МСКО)
+
+## Результат выполения
+### Сформированное созвездие на отправку:
+![](https://github.com/user-attachments/assets/86276499-89be-4b5b-90e7-732a2e5c9bfd)
+### Принятое созвездие с шумом и влиянием канала:
+![](https://sun9-47.userapi.com/impg/lC8YeQPY43B__Zo84JMk98Q8nB1xe_4Bio_OKA/h7Jp1d6leAw.jpg?size=1596x823&quality=95&sign=16a9188ac8a1a84b555c971078d7926b&type=album)
+### Восстановленное созвездие после оценки канала:
+![](https://sun9-47.userapi.com/impg/KZ-3KVtdAMaSxHDFTUBaC-ec6WoLffD9ZFocuw/PZs4Nmn4CA4.jpg?size=1589x830&quality=95&sign=0b745acc117164f8aafb0d9d42012f17&type=album)
+### Отпарвленные биты & Принятые биты
+![](https://sun9-52.userapi.com/impg/pBEzZRHXYokvB0dQPucekaZ4pD6691RL2UamfQ/3JpG7rL3mnU.jpg?size=613x245&quality=95&sign=977f53ad5eb034697b5d1b4e87623a69&type=album)
+
+## BER & EVM
+
+### BER
+```math
+\text{BER} = \frac{\text{Число ошибочных бит}}{\text{Общее число переданных бит}}
+```
+### EVM
+```math
+\text{EVM} = \sqrt{ \frac{ \sum_{i=1}^{N} |s_i - \hat{s}_i|^2 }{ \sum_{i=1}^{N} |\hat{s}_i|^2 } } \cdot 100\%, где:
+```
+```math
+s_i— переданный (идеальный) символ,
+s^i — принятый (оцененный) символ,
+N — количество символов.
+```
+![](https://sun9-25.userapi.com/impg/K7bTaBVTEG1VzwwsqNyh4O2Mh8v1tz9RYa4MwQ/DdFxFrAL9JA.jpg?size=112x38&quality=95&sign=a8c88ba1e5af1ac98b90084aabe804f7&type=album)
 
 
 
