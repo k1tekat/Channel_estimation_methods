@@ -31,7 +31,7 @@ def awgn(signal, SNR):
     signal_power = np.mean(np.abs(signal) ** 2)
     noise_power = signal_power / (10 ** (SNR / 10))
     noise = np.sqrt(noise_power / 2) * (np.random.randn(*signal.shape) + 1j * np.random.randn(*signal.shape))
-    return signal + noise
+    return signal #+ noise
     #return signal
 
 def LS_CE(Y, Xp, pilot_loc, Nfft, Nps, int_opt):
@@ -195,7 +195,21 @@ def Mapper(b,Nbps):
     plt.show()
     return N
 
+def calculate_EVM(tx_symbols, rx_symbols):
+    if len(tx_symbols) != len(rx_symbols):
+        raise ValueError("Количество переданных и принятых символов должно совпадать")
 
+    error_vector = np.abs(tx_symbols - rx_symbols)
+    signal_power = np.mean(np.abs(tx_symbols) ** 2)
+
+    evm = np.sqrt(np.mean(error_vector ** 2) / signal_power) * 100  # в процентах
+    return evm
+def calculate_BER(tx_bits, rx_bits):
+    if len(tx_bits) != len(rx_bits):
+        raise ValueError("Длина переданных и принятых бит различается")
+    errors = np.sum(tx_bits != rx_bits)
+    ber = errors / len(tx_bits)
+    return ber
 # Генерация случайного канала
 h = np.random.randn(2) + 1j * np.random.randn(2)
 H_true = np.fft.fft(h, Nfft)  # Истинный канал в частотной области
@@ -508,7 +522,7 @@ for nsym in range(Nsym):
 
     Data_extracted = np.array(Data_extracted)
     Data_extracted = demapper(Data_extracted)
-    print(Data_extracted)
+
     plt.figure("QAM-16_",figsize=(10,10))
     for k in range(Nfft-Np):
         # Отрисовка точки
@@ -522,16 +536,15 @@ for nsym in range(Nsym):
     plt.grid(True)
     plt.axis('equal')
     plt.show()
-    # msg_detected = np.round(((np.real(Data_extracted / A) + 1) / 2) * np.sqrt(M)) + \
-    #                np.round(((np.imag(Data_extracted / A) + 1) / 2) * np.sqrt(M)) * np.sqrt(M)
-    # nose += np.sum(msg_detected != My_Data)
+
+print("TX_Data: ",bits)
+print("RX_Data: ",Data_extracted)
 
 
-    
+ber = calculate_BER(bits, Data_extracted)
+print(f"BER: {ber:.4f}")
+evm = calculate_EVM(bits, Data_extracted)
+print(f"EVM: {evm:.2f}%")
 
-# Вывод результатов
-MSEs = MSE / (Nfft * Nsym)
-print("MSE:", MSEs)
-print("Bit Error Rate:", nose / (Nsym * (Nfft - Np)))
 plt.tight_layout()
 plt.show()
